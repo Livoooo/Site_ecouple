@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import PartySocket from "partysocket";
 import { ICE_SERVERS } from "@/lib/ice-servers";
 import type { ServerMessage, SignalingMessage } from "@/lib/messages";
@@ -411,9 +412,17 @@ export default function Room() {
     <div className="flex flex-1 flex-col gap-4 p-4 md:flex-row md:gap-6 md:p-6">
       <div className="flex flex-1 flex-col gap-4">
         <div className="flex items-center justify-between">
-          <h1 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">
-            Watch Party
-          </h1>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/"
+              className="text-sm text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50"
+            >
+              ← Accueil
+            </Link>
+            <h1 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">
+              Watch Party
+            </h1>
+          </div>
           <span className="text-sm text-zinc-500 dark:text-zinc-400">
             {peerCount} personne{peerCount > 1 ? "s" : ""} connectée
             {peerCount > 1 ? "s" : ""}
