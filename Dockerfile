@@ -17,6 +17,11 @@ ENV NEXT_PUBLIC_PARTYKIT_HOST=$NEXT_PUBLIC_PARTYKIT_HOST
 
 RUN npm run build
 
-EXPOSE 3000 1999
+# Le service web (Next.js) écoute sur 3000, le service party (PartyKit) sur
+# 1999 : chaque image ne doit exposer QUE son propre port, sinon un reverse
+# proxy qui auto-détecte le port cible (ex: Traefik/Coolify) ne peut plus
+# choisir entre les deux et le routage échoue (502/Bad Gateway).
+ARG APP_PORT=3000
+EXPOSE $APP_PORT
 
 CMD ["npm", "run", "start"]

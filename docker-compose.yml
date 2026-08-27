@@ -1,21 +1,27 @@
 x-app-build: &app-build
   context: .
   dockerfile: Dockerfile
-  args:
-    NEXT_PUBLIC_PARTYKIT_HOST: ${NEXT_PUBLIC_PARTYKIT_HOST:-localhost:1999}
 
 services:
   party:
-    build: *app-build
-    image: watch-party-app:latest
+    build:
+      <<: *app-build
+      args:
+        NEXT_PUBLIC_PARTYKIT_HOST: ${NEXT_PUBLIC_PARTYKIT_HOST:-localhost:1999}
+        APP_PORT: 1999
+    image: watch-party-app-party:latest
     command: ["npx", "partykit", "dev", "--port", "1999"]
     expose:
       - "1999"
     restart: unless-stopped
 
   web:
-    build: *app-build
-    image: watch-party-app:latest
+    build:
+      <<: *app-build
+      args:
+        NEXT_PUBLIC_PARTYKIT_HOST: ${NEXT_PUBLIC_PARTYKIT_HOST:-localhost:1999}
+        APP_PORT: 3000
+    image: watch-party-app-web:latest
     command: ["npm", "run", "start"]
     expose:
       - "3000"
