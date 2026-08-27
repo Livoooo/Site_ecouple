@@ -9,7 +9,7 @@ services:
     build: *app-build
     image: watch-party-app:latest
     command: ["npx", "partykit", "dev", "--port", "1999"]
-    ports:
+    expose:
       - "1999"
     restart: unless-stopped
 
@@ -17,7 +17,7 @@ services:
     build: *app-build
     image: watch-party-app:latest
     command: ["npm", "run", "start"]
-    ports:
+    expose:
       - "3000"
     environment:
       SITE_PASSWORD: ${SITE_PASSWORD:-changeme123}
