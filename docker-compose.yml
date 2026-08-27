@@ -10,7 +10,7 @@ services:
     image: watch-party-app:latest
     command: ["npx", "partykit", "dev", "--port", "1999"]
     ports:
-      - "1999:1999"
+      - "1999"
     restart: unless-stopped
 
   web:
@@ -18,7 +18,7 @@ services:
     image: watch-party-app:latest
     command: ["npm", "run", "start"]
     ports:
-      - "3000:3000"
+      - "3000"
     environment:
       SITE_PASSWORD: ${SITE_PASSWORD:-changeme123}
     depends_on:
