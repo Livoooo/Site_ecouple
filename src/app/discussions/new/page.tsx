@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import type { ConversationMessage, Conversation } from "@/lib/party-http";
+import { describeProxyError, type ConversationMessage, type Conversation } from "@/lib/party-http";
 
 export default function NewDiscussionPage() {
   const router = useRouter();
@@ -40,7 +40,7 @@ export default function NewDiscussionPage() {
         body: JSON.stringify({ title: title.trim(), messages }),
         cache: "no-store",
       });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      if (!res.ok) throw new Error(await describeProxyError(res));
       const conversation: Conversation = await res.json();
       router.push(`/discussions/${conversation.id}`);
     } catch (err) {

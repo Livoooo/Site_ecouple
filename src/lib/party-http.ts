@@ -24,3 +24,21 @@ export function partyRoomUrl(room: string) {
   const protocol = isLocalHost(host) ? "http" : "https";
   return `${protocol}://${host}/parties/main/${room}`;
 }
+
+// Construit un message d'erreur détaillé à partir d'une réponse non-ok du
+// relais /discussions-data, pour pouvoir diagnostiquer (au lieu de juste
+// afficher un code HTTP sans contexte).
+export async function describeProxyError(res: Response): Promise<string> {
+  try {
+    const body = await res.json();
+    if (body?.error === "upstream-error") {
+      return `PartyKit a répondu ${body.upstreamStatus} ${body.upstreamStatusText} : ${body.upstreamBody}`;
+    }
+    if (body?.error === "fetch-exception") {
+      return `Le serveur n'a pas pu joindre PartyKit : ${body.message}`;
+    }
+    return `HTTP ${res.status} : ${JSON.stringify(body)}`;
+  } catch {
+    return `HTTP ${res.status}`;
+  }
+}

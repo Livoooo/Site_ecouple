@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import type { Conversation } from "@/lib/party-http";
+import { describeProxyError, type Conversation } from "@/lib/party-http";
 
 export default function DiscussionPage() {
   const params = useParams<{ id: string }>();
@@ -16,8 +16,8 @@ export default function DiscussionPage() {
 
   useEffect(() => {
     fetch("/discussions-data", { cache: "no-store" })
-      .then((res) => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      .then(async (res) => {
+        if (!res.ok) throw new Error(await describeProxyError(res));
         return res.json();
       })
       .then((data: Conversation[]) => {
