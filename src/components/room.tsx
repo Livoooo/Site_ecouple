@@ -44,6 +44,7 @@ export default function Room() {
   const socketRef = useRef<PartySocket | null>(null);
   const pcRef = useRef<RTCPeerConnection | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const iceRestartTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const myIdRef = useRef<string>(crypto.randomUUID());
   const peerIdRef = useRef<string | null>(null);
@@ -94,6 +95,24 @@ export default function Room() {
     []
   );
 
+  const renegotiate = useCallback(
+    async (pc: RTCPeerConnection, options?: { iceRestart?: boolean }) => {
+      try {
+        makingOfferRef.current = true;
+        const offer = await pc.createOffer(
+          options?.iceRestart ? { iceRestart: true } : undefined
+        );
+        await pc.setLocalDescription(offer);
+        send({ type: "webrtc-offer", sdp: pc.localDescription!.sdp! });
+      } catch (err) {
+        console.error("renegotiation failed", err);
+      } finally {
+        makingOfferRef.current = false;
+      }
+    },
+    [send]
+  );
+
   const ensurePeerConnection = useCallback(() => {
     if (pcRef.current) return pcRef.current;
 
@@ -119,21 +138,41 @@ export default function Room() {
 
     pc.onconnectionstatechange = () => {
       setConnectionState(pc.connectionState);
-      if (
-        pc.connectionState === "disconnected" ||
-        pc.connectionState === "failed" ||
-        pc.connectionState === "closed"
-      ) {
+
+      if (pc.connectionState === "disconnected" || pc.connectionState === "failed") {
         setRemoteScreenActive(false);
         setRemoteWebcamActive(false);
+        // Coupure réseau passagère (wifi qui saute, changement de réseau...) :
+        // on tente de rétablir la connexion tout seul via un ICE restart au
+        // lieu d'obliger à recharger la page. Un court délai laisse une
+        // chance à l'état de se rétablir de lui-même avant d'intervenir.
+        if (iceRestartTimeoutRef.current) clearTimeout(iceRestartTimeoutRef.current);
+        iceRestartTimeoutRef.current = setTimeout(() => {
+          if (
+            pcRef.current === pc &&
+            (pc.connectionState === "disconnected" || pc.connectionState === "failed")
+          ) {
+            void renegotiate(pc, { iceRestart: true });
+          }
+        }, 2000);
+      } else if (pc.connectionState === "closed") {
+        setRemoteScreenActive(false);
+        setRemoteWebcamActive(false);
+      } else if (pc.connectionState === "connected" && iceRestartTimeoutRef.current) {
+        clearTimeout(iceRestartTimeoutRef.current);
+        iceRestartTimeoutRef.current = null;
       }
     };
 
     pcRef.current = pc;
     return pc;
-  }, [applyRemoteStream, send]);
+  }, [applyRemoteStream, renegotiate, send]);
 
   const closePeerConnection = useCallback(() => {
+    if (iceRestartTimeoutRef.current) {
+      clearTimeout(iceRestartTimeoutRef.current);
+      iceRestartTimeoutRef.current = null;
+    }
     pcRef.current?.close();
     pcRef.current = null;
     setConnectionState(null);
@@ -144,22 +183,6 @@ export default function Room() {
     pendingStreamsRef.current.clear();
     pendingKindsRef.current.clear();
   }, []);
-
-  const renegotiate = useCallback(
-    async (pc: RTCPeerConnection) => {
-      try {
-        makingOfferRef.current = true;
-        const offer = await pc.createOffer();
-        await pc.setLocalDescription(offer);
-        send({ type: "webrtc-offer", sdp: pc.localDescription!.sdp! });
-      } catch (err) {
-        console.error("renegotiation failed", err);
-      } finally {
-        makingOfferRef.current = false;
-      }
-    },
-    [send]
-  );
 
   // (Re)attache tous les flux locaux actifs à une connexion neuve, utile
   // quand l'autre personne se (re)connecte alors qu'on partage déjà quelque
