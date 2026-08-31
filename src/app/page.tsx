@@ -4,7 +4,6 @@ import Countdown from "@/components/countdown";
 const PLACEHOLDER_TILES = [
   "J'travaille dessus mon amour",
   "J'travaille dessus mon amour",
-  "J'travaille dessus mon amour",
 ];
 
 export default function Home() {
@@ -37,6 +36,13 @@ export default function Home() {
             </span>
           </div>
         ))}
+
+        <Link
+          href="/discussions"
+          aria-label="Nos discussions"
+          className="aspect-video overflow-hidden rounded-2xl border border-black/10 bg-cover bg-center shadow-sm dark:border-white/10"
+          style={{ backgroundImage: "url(/discussions-bg.jpg)" }}
+        />
       </div>
     </div>
   );
