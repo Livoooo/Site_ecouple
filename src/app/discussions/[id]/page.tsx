@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import type { Conversation } from "@/lib/discussions-store";
+import { partyRoomUrl, type Conversation } from "@/lib/party-http";
 
 export default function DiscussionPage() {
   const params = useParams<{ id: string }>();
@@ -14,9 +14,11 @@ export default function DiscussionPage() {
   const bottomRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    fetch(`/api/discussions/${params.id}`)
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => setConversation(data));
+    fetch(partyRoomUrl("discussions"))
+      .then((res) => res.json())
+      .then((data: Conversation[]) => {
+        setConversation(data.find((c) => c.id === params.id) ?? null);
+      });
   }, [params.id]);
 
   useEffect(() => {

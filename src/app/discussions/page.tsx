@@ -2,13 +2,13 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import type { Conversation } from "@/lib/discussions-store";
+import { partyRoomUrl, type Conversation } from "@/lib/party-http";
 
 export default function DiscussionsPage() {
   const [conversations, setConversations] = useState<Conversation[] | null>(null);
 
   const load = () => {
-    fetch("/api/discussions")
+    fetch(partyRoomUrl("discussions"))
       .then((res) => res.json())
       .then((data: Conversation[]) => setConversations(data));
   };
@@ -19,7 +19,7 @@ export default function DiscussionsPage() {
 
   const handleDelete = async (id: string) => {
     if (!confirm("Supprimer cette conversation ?")) return;
-    await fetch(`/api/discussions/${id}`, { method: "DELETE" });
+    await fetch(`${partyRoomUrl("discussions")}?id=${id}`, { method: "DELETE" });
     load();
   };
 

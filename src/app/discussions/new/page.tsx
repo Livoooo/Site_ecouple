@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import type { ConversationMessage, Conversation } from "@/lib/discussions-store";
+import { partyRoomUrl, type ConversationMessage, type Conversation } from "@/lib/party-http";
 
 export default function NewDiscussionPage() {
   const router = useRouter();
@@ -31,7 +31,7 @@ export default function NewDiscussionPage() {
 
   const save = async () => {
     if (!title.trim() || messages.length === 0) return;
-    const res = await fetch("/api/discussions", {
+    const res = await fetch(partyRoomUrl("discussions"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ title: title.trim(), messages }),
