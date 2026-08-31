@@ -11,6 +11,15 @@ const ROOM_NAME = "main";
 type ChatMessage = { text: string; from: "moi" | "eux"; ts: number };
 type StreamKind = "screen" | "webcam";
 
+const CONNECTION_LABELS: Record<string, string> = {
+  new: "en attente",
+  connecting: "connexion...",
+  connected: "connecté",
+  disconnected: "déconnecté",
+  failed: "échec de connexion",
+  closed: "fermée",
+};
+
 function mediaErrorMessage(err: unknown) {
   if (err instanceof DOMException) {
     if (err.name === "NotAllowedError") return "Permission refusée.";
@@ -23,6 +32,7 @@ function mediaErrorMessage(err: unknown) {
 
 export default function Room() {
   const [peerCount, setPeerCount] = useState(0);
+  const [connectionState, setConnectionState] = useState<string | null>(null);
   const [isSharingScreen, setIsSharingScreen] = useState(false);
   const [isSharingWebcam, setIsSharingWebcam] = useState(false);
   const [remoteScreenActive, setRemoteScreenActive] = useState(false);
@@ -107,6 +117,7 @@ export default function Room() {
     };
 
     pc.onconnectionstatechange = () => {
+      setConnectionState(pc.connectionState);
       if (
         pc.connectionState === "disconnected" ||
         pc.connectionState === "failed" ||
@@ -124,6 +135,7 @@ export default function Room() {
   const closePeerConnection = useCallback(() => {
     pcRef.current?.close();
     pcRef.current = null;
+    setConnectionState(null);
     setRemoteScreenActive(false);
     setRemoteWebcamActive(false);
     if (remoteScreenVideoRef.current) remoteScreenVideoRef.current.srcObject = null;
@@ -409,7 +421,7 @@ export default function Room() {
   );
 
   return (
-    <div className="flex flex-1 flex-col gap-4 p-4 md:flex-row md:gap-6 md:p-6">
+    <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-4 md:flex-row md:gap-6 md:overflow-visible md:p-6">
       <div className="flex flex-1 flex-col gap-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -423,10 +435,26 @@ export default function Room() {
               Watch Party
             </h1>
           </div>
-          <span className="text-sm text-zinc-500 dark:text-zinc-400">
-            {peerCount} personne{peerCount > 1 ? "s" : ""} connectée
-            {peerCount > 1 ? "s" : ""}
-          </span>
+          <div className="flex items-center gap-3 text-sm text-zinc-500 dark:text-zinc-400">
+            {connectionState && (
+              <span className="flex items-center gap-1.5">
+                <span
+                  className={`h-2 w-2 rounded-full ${
+                    connectionState === "connected"
+                      ? "bg-green-500"
+                      : connectionState === "failed" || connectionState === "disconnected"
+                        ? "bg-red-500"
+                        : "bg-amber-500"
+                  }`}
+                />
+                {CONNECTION_LABELS[connectionState] ?? connectionState}
+              </span>
+            )}
+            <span>
+              {peerCount} personne{peerCount > 1 ? "s" : ""} connectée
+              {peerCount > 1 ? "s" : ""}
+            </span>
+          </div>
         </div>
 
         <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-black">
@@ -468,7 +496,7 @@ export default function Room() {
         </div>
       </div>
 
-      <div className="flex w-full flex-col gap-3 md:w-72">
+      <div className="flex min-h-0 w-full flex-col gap-3 md:w-72">
         <div className="flex flex-col gap-2">
           <div
             className={`aspect-video w-full overflow-hidden rounded-lg bg-black ring-1 ring-white/10 ${
