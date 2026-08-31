@@ -35,6 +35,7 @@ export default function NewDiscussionPage() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ title: title.trim(), messages }),
+      cache: "no-store",
     });
     const conversation: Conversation = await res.json();
     router.push(`/discussions/${conversation.id}`);

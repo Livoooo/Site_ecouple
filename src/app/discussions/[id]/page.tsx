@@ -14,7 +14,7 @@ export default function DiscussionPage() {
   const bottomRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    fetch(partyRoomUrl("discussions"))
+    fetch(partyRoomUrl("discussions"), { cache: "no-store" })
       .then((res) => res.json())
       .then((data: Conversation[]) => {
         setConversation(data.find((c) => c.id === params.id) ?? null);

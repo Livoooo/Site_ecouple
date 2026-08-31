@@ -12,6 +12,10 @@ const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET,POST,DELETE,OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type",
+  // Sans ça, Cloudflare (ou le navigateur) peut mettre en cache la réponse
+  // au niveau du edge le plus proche de chaque appareil, donnant des
+  // résultats différents selon le réseau/appareil utilisé.
+  "Cache-Control": "no-store",
 };
 
 // Room volontairement bête : relaie tout message reçu aux autres clients

@@ -8,7 +8,7 @@ export default function DiscussionsPage() {
   const [conversations, setConversations] = useState<Conversation[] | null>(null);
 
   const load = () => {
-    fetch(partyRoomUrl("discussions"))
+    fetch(partyRoomUrl("discussions"), { cache: "no-store" })
       .then((res) => res.json())
       .then((data: Conversation[]) => setConversations(data));
   };
@@ -19,7 +19,10 @@ export default function DiscussionsPage() {
 
   const handleDelete = async (id: string) => {
     if (!confirm("Supprimer cette conversation ?")) return;
-    await fetch(`${partyRoomUrl("discussions")}?id=${id}`, { method: "DELETE" });
+    await fetch(`${partyRoomUrl("discussions")}?id=${id}`, {
+      method: "DELETE",
+      cache: "no-store",
+    });
     load();
   };
 
