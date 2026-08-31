@@ -9,7 +9,7 @@ export default function DiscussionsPage() {
   const [error, setError] = useState<string | null>(null);
 
   const load = () => {
-    fetch("/api/discussions", { cache: "no-store" })
+    fetch("/discussions-data", { cache: "no-store" })
       .then((res) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.json();
@@ -27,7 +27,7 @@ export default function DiscussionsPage() {
 
   const handleDelete = async (id: string) => {
     if (!confirm("Supprimer cette conversation ?")) return;
-    await fetch(`/api/discussions?id=${id}`, {
+    await fetch(`/discussions-data?id=${id}`, {
       method: "DELETE",
       cache: "no-store",
     });

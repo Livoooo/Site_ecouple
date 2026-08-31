@@ -34,7 +34,7 @@ export default function NewDiscussionPage() {
     if (!title.trim() || messages.length === 0) return;
     setError(null);
     try {
-      const res = await fetch("/api/discussions", {
+      const res = await fetch("/discussions-data", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title: title.trim(), messages }),

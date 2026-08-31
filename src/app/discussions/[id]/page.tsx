@@ -15,7 +15,7 @@ export default function DiscussionPage() {
   const bottomRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    fetch("/api/discussions", { cache: "no-store" })
+    fetch("/discussions-data", { cache: "no-store" })
       .then((res) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.json();
