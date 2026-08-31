@@ -2,14 +2,14 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { partyRoomUrl, type Conversation } from "@/lib/party-http";
+import type { Conversation } from "@/lib/party-http";
 
 export default function DiscussionsPage() {
   const [conversations, setConversations] = useState<Conversation[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const load = () => {
-    fetch(partyRoomUrl("discussions"), { cache: "no-store" })
+    fetch("/api/discussions", { cache: "no-store" })
       .then((res) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.json();
@@ -27,7 +27,7 @@ export default function DiscussionsPage() {
 
   const handleDelete = async (id: string) => {
     if (!confirm("Supprimer cette conversation ?")) return;
-    await fetch(`${partyRoomUrl("discussions")}?id=${id}`, {
+    await fetch(`/api/discussions?id=${id}`, {
       method: "DELETE",
       cache: "no-store",
     });
@@ -36,9 +36,6 @@ export default function DiscussionsPage() {
 
   return (
     <div className="relative flex min-h-0 flex-1 flex-col bg-zinc-50 dark:bg-black">
-      <div className="bg-fuchsia-600 p-2 text-center text-sm font-bold text-white">
-        TEST DEPLOY v3
-      </div>
       <div className="flex items-center gap-3 p-4">
         <Link
           href="/"

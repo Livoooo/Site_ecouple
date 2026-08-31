@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { partyRoomUrl, type Conversation } from "@/lib/party-http";
+import type { Conversation } from "@/lib/party-http";
 
 export default function DiscussionPage() {
   const params = useParams<{ id: string }>();
@@ -15,7 +15,7 @@ export default function DiscussionPage() {
   const bottomRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    fetch(partyRoomUrl("discussions"), { cache: "no-store" })
+    fetch("/api/discussions", { cache: "no-store" })
       .then((res) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.json();

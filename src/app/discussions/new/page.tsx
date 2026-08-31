@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { partyRoomUrl, type ConversationMessage, type Conversation } from "@/lib/party-http";
+import type { ConversationMessage, Conversation } from "@/lib/party-http";
 
 export default function NewDiscussionPage() {
   const router = useRouter();
@@ -11,6 +11,7 @@ export default function NewDiscussionPage() {
   const [messages, setMessages] = useState<ConversationMessage[]>([]);
   const [draft, setDraft] = useState("");
   const [from, setFrom] = useState<"moi" | "eux">("moi");
+  const [error, setError] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -31,14 +32,20 @@ export default function NewDiscussionPage() {
 
   const save = async () => {
     if (!title.trim() || messages.length === 0) return;
-    const res = await fetch(partyRoomUrl("discussions"), {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: title.trim(), messages }),
-      cache: "no-store",
-    });
-    const conversation: Conversation = await res.json();
-    router.push(`/discussions/${conversation.id}`);
+    setError(null);
+    try {
+      const res = await fetch("/api/discussions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: title.trim(), messages }),
+        cache: "no-store",
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const conversation: Conversation = await res.json();
+      router.push(`/discussions/${conversation.id}`);
+    } catch (err) {
+      setError(String(err));
+    }
   };
 
   return (
@@ -134,6 +141,11 @@ export default function NewDiscussionPage() {
             Ajouter
           </button>
         </div>
+        {error && (
+          <p className="text-center text-sm break-all text-red-500">
+            Erreur : {error}
+          </p>
+        )}
         <button
           onClick={save}
           disabled={!title.trim() || messages.length === 0}
