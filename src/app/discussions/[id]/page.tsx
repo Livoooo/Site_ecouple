@@ -11,14 +11,19 @@ export default function DiscussionPage() {
     undefined
   );
   const [revealedCount, setRevealedCount] = useState(0);
+  const [error, setError] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     fetch(partyRoomUrl("discussions"), { cache: "no-store" })
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      })
       .then((data: Conversation[]) => {
         setConversation(data.find((c) => c.id === params.id) ?? null);
-      });
+      })
+      .catch((err) => setError(String(err)));
   }, [params.id]);
 
   useEffect(() => {
@@ -29,6 +34,17 @@ export default function DiscussionPage() {
     if (!conversation) return;
     setRevealedCount((n) => Math.min(n + 1, conversation.messages.length));
   };
+
+  if (error) {
+    return (
+      <div className="flex flex-1 flex-col items-center justify-center gap-3 bg-zinc-50 p-6 text-center dark:bg-black">
+        <p className="text-sm break-all text-red-500">Erreur : {error}</p>
+        <Link href="/discussions" className="text-sm text-zinc-500 underline">
+          ← Retour à la liste
+        </Link>
+      </div>
+    );
+  }
 
   if (conversation === undefined) return null;
 

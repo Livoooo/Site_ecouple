@@ -6,11 +6,19 @@ import { partyRoomUrl, type Conversation } from "@/lib/party-http";
 
 export default function DiscussionsPage() {
   const [conversations, setConversations] = useState<Conversation[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const load = () => {
     fetch(partyRoomUrl("discussions"), { cache: "no-store" })
-      .then((res) => res.json())
-      .then((data: Conversation[]) => setConversations(data));
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      })
+      .then((data: Conversation[]) => {
+        setError(null);
+        setConversations(data);
+      })
+      .catch((err) => setError(String(err)));
   };
 
   useEffect(() => {
@@ -38,6 +46,25 @@ export default function DiscussionsPage() {
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 pb-24">
+        {error && (
+          <p className="mt-12 text-center text-sm break-all text-red-500">
+            Erreur : {error}
+            <br />
+            <button onClick={load} className="mt-2 underline">
+              réessayer
+            </button>
+          </p>
+        )}
+        {conversations === null && !error && (
+          <p className="mt-12 text-center text-sm text-zinc-400">
+            Chargement...
+          </p>
+        )}
+        {conversations && conversations.length === 0 && !error && (
+          <p className="mt-12 text-center text-sm text-zinc-400">
+            Aucune conversation trouvée.
+          </p>
+        )}
         {conversations && conversations.length > 0 && (
           <ul className="flex flex-col gap-2">
             {conversations
