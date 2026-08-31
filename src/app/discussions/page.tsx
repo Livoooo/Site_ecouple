@@ -36,6 +36,9 @@ export default function DiscussionsPage() {
 
   return (
     <div className="relative flex min-h-0 flex-1 flex-col bg-zinc-50 dark:bg-black">
+      <div className="bg-fuchsia-600 p-2 text-center text-sm font-bold text-white">
+        TEST DEPLOY v3
+      </div>
       <div className="flex items-center gap-3 p-4">
         <Link
           href="/"
