@@ -16,4 +16,8 @@ services:
       - "3000"
     environment:
       SITE_PASSWORD: ${SITE_PASSWORD:-changeme123}
+      # Utilisé uniquement côté serveur (voir src/lib/party-http.ts) pour ne
+      # pas dépendre de NEXT_PUBLIC_PARTYKIT_HOST, qui peut être écrasé par
+      # une variable d'env Coolify périmée qu'on ne contrôle pas.
+      PARTYKIT_SERVER_HOST: watch-party-signaling.Livoooo.partykit.dev
     restart: unless-stopped

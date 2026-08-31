@@ -9,12 +9,18 @@ import { partyRoomUrl } from "@/lib/party-http";
 // est réellement atteint). L'absence du header cf-ray sur la réponse 503
 // suggère que quelque chose intercepte la requête avant Cloudflare.
 export async function GET() {
-  const host = process.env.NEXT_PUBLIC_PARTYKIT_HOST ?? "(non défini)";
   const roomUrl = partyRoomUrl("discussions");
   const traceUrl = roomUrl.replace(/\/parties\/.*$/, "/cdn-cgi/trace");
   const controlTraceUrl = "https://1.1.1.1/cdn-cgi/trace";
+  const host = new URL(roomUrl).host;
 
-  const result: Record<string, unknown> = { host, roomUrl, traceUrl };
+  const result: Record<string, unknown> = {
+    host,
+    roomUrl,
+    traceUrl,
+    envPartykitServerHost: process.env.PARTYKIT_SERVER_HOST ?? "(non défini)",
+    envNextPublicPartykitHost: process.env.NEXT_PUBLIC_PARTYKIT_HOST ?? "(non défini)",
+  };
 
   try {
     result.dns = await dns.resolve(host.split(":")[0]);

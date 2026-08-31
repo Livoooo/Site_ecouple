@@ -20,7 +20,11 @@ function isLocalHost(host: string) {
 }
 
 export function partyRoomUrl(room: string) {
-  const host = process.env.NEXT_PUBLIC_PARTYKIT_HOST!;
+  // PARTYKIT_SERVER_HOST (défini uniquement dans docker-compose.yml) prend
+  // le pas sur NEXT_PUBLIC_PARTYKIT_HOST côté serveur : ce dernier est une
+  // variable d'env Coolify qui peut contenir une valeur périmée (ancien
+  // sous-domaine auto-hébergé) sans qu'on puisse la corriger nous-mêmes.
+  const host = process.env.PARTYKIT_SERVER_HOST || process.env.NEXT_PUBLIC_PARTYKIT_HOST!;
   const protocol = isLocalHost(host) ? "http" : "https";
   return `${protocol}://${host}/parties/main/${room}`;
 }
