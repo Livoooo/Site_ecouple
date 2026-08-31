@@ -35,6 +35,7 @@ export default function Room() {
   const [connectionState, setConnectionState] = useState<string | null>(null);
   const [isSharingScreen, setIsSharingScreen] = useState(false);
   const [isSharingWebcam, setIsSharingWebcam] = useState(false);
+  const [isMicMuted, setIsMicMuted] = useState(false);
   const [remoteScreenActive, setRemoteScreenActive] = useState(false);
   const [remoteWebcamActive, setRemoteWebcamActive] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -262,18 +263,32 @@ export default function Room() {
     localWebcamStreamRef.current = null;
     if (localWebcamVideoRef.current) localWebcamVideoRef.current.srcObject = null;
     setIsSharingWebcam(false);
+    setIsMicMuted(false);
     if (pcRef.current) void renegotiate(pcRef.current);
   }, [renegotiate, send]);
+
+  const toggleMic = useCallback(() => {
+    setIsMicMuted((muted) => {
+      const nextMuted = !muted;
+      localWebcamStreamRef.current
+        ?.getAudioTracks()
+        .forEach((track) => (track.enabled = !nextMuted));
+      return nextMuted;
+    });
+  }, []);
 
   const startWebcam = useCallback(async () => {
     setError(null);
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: true,
-        audio: false,
+        // Micro activé par défaut : on peut ensuite le couper via le bouton
+        // mute sans avoir à réactiver toute la webcam.
+        audio: true,
       });
 
       localWebcamStreamRef.current = stream;
+      setIsMicMuted(false);
       if (localWebcamVideoRef.current) localWebcamVideoRef.current.srcObject = stream;
       setIsSharingWebcam(true);
       stream.getVideoTracks()[0].addEventListener("ended", stopWebcam);
@@ -521,6 +536,15 @@ export default function Room() {
           >
             {isSharingWebcam ? "Couper ma webcam" : "Activer ma webcam"}
           </button>
+          {isSharingWebcam && (
+            <button
+              onClick={toggleMic}
+              aria-label={isMicMuted ? "Réactiver le micro" : "Couper le micro"}
+              className="rounded-lg border border-black/10 px-3 py-2 text-sm font-medium text-zinc-900 transition-colors hover:bg-black/5 dark:border-white/10 dark:text-zinc-50 dark:hover:bg-white/10"
+            >
+              {isMicMuted ? "🔇" : "🎤"}
+            </button>
+          )}
         </div>
       </div>
 
