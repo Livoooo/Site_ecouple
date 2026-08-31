@@ -26,34 +26,17 @@ export default function Home() {
           </div>
         </Link>
 
-        {PLACEHOLDER_TILES.map((label, i) => {
-          const tileClassName =
-            "flex aspect-video flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-black/10 bg-black/[.02] text-center dark:border-white/10 dark:bg-white/[.02]";
-          const content = (
-            <>
-              <span className="text-2xl opacity-50">💗</span>
-              <span className="px-4 text-sm font-medium text-zinc-400 dark:text-zinc-500">
-                {label}
-              </span>
-            </>
-          );
-
-          // Case en bas à droite (dernière de la liste) : même look, mais
-          // cliquable vers les conversations.
-          if (i === PLACEHOLDER_TILES.length - 1) {
-            return (
-              <Link key={i} href="/discussions" className={tileClassName}>
-                {content}
-              </Link>
-            );
-          }
-
-          return (
-            <div key={i} className={tileClassName}>
-              {content}
-            </div>
-          );
-        })}
+        {PLACEHOLDER_TILES.map((label, i) => (
+          <div
+            key={i}
+            className="flex aspect-video flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-black/10 bg-black/[.02] text-center dark:border-white/10 dark:bg-white/[.02]"
+          >
+            <span className="text-2xl opacity-50">💗</span>
+            <span className="px-4 text-sm font-medium text-zinc-400 dark:text-zinc-500">
+              {label}
+            </span>
+          </div>
+        ))}
       </div>
     </div>
   );
