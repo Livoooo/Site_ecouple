@@ -3,10 +3,7 @@
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import {
-  type ConversationMessage,
-  createConversation,
-} from "@/lib/conversations-storage";
+import type { ConversationMessage, Conversation } from "@/lib/discussions-store";
 
 export default function NewDiscussionPage() {
   const router = useRouter();
@@ -32,9 +29,14 @@ export default function NewDiscussionPage() {
     setMessages((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const save = () => {
+  const save = async () => {
     if (!title.trim() || messages.length === 0) return;
-    const conversation = createConversation(title.trim(), messages);
+    const res = await fetch("/api/discussions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title: title.trim(), messages }),
+    });
+    const conversation: Conversation = await res.json();
     router.push(`/discussions/${conversation.id}`);
   };
 

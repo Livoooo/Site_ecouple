@@ -1,24 +1,26 @@
 "use client";
 
 import Link from "next/link";
-import { useSyncExternalStore } from "react";
-import {
-  deleteConversation,
-  getConversationsServerSnapshot,
-  getConversationsSnapshot,
-  subscribeToConversations,
-} from "@/lib/conversations-storage";
+import { useEffect, useState } from "react";
+import type { Conversation } from "@/lib/discussions-store";
 
 export default function DiscussionsPage() {
-  const conversations = useSyncExternalStore(
-    subscribeToConversations,
-    getConversationsSnapshot,
-    getConversationsServerSnapshot
-  );
+  const [conversations, setConversations] = useState<Conversation[] | null>(null);
 
-  const handleDelete = (id: string) => {
+  const load = () => {
+    fetch("/api/discussions")
+      .then((res) => res.json())
+      .then((data: Conversation[]) => setConversations(data));
+  };
+
+  useEffect(() => {
+    load();
+  }, []);
+
+  const handleDelete = async (id: string) => {
     if (!confirm("Supprimer cette conversation ?")) return;
-    deleteConversation(id);
+    await fetch(`/api/discussions/${id}`, { method: "DELETE" });
+    load();
   };
 
   return (
@@ -33,7 +35,7 @@ export default function DiscussionsPage() {
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 pb-24">
-        {conversations.length > 0 && (
+        {conversations && conversations.length > 0 && (
           <ul className="flex flex-col gap-2">
             {conversations
               .slice()

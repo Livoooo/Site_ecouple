@@ -20,6 +20,9 @@
 # partykit
 /.partykit/
 
+# données locales (conversations stockées côté serveur)
+/data/
+
 # production
 /build
 

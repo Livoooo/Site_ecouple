@@ -2,30 +2,22 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
-import {
-  getConversationServerSnapshot,
-  getConversationSnapshot,
-  subscribeToConversations,
-  type Conversation,
-} from "@/lib/conversations-storage";
+import { useEffect, useRef, useState } from "react";
+import type { Conversation } from "@/lib/discussions-store";
 
 export default function DiscussionPage() {
   const params = useParams<{ id: string }>();
-
-  const getSnapshot = useCallback(
-    () => getConversationSnapshot(params.id),
-    [params.id]
+  const [conversation, setConversation] = useState<Conversation | null | undefined>(
+    undefined
   );
-
-  const conversation = useSyncExternalStore(
-    subscribeToConversations,
-    getSnapshot,
-    getConversationServerSnapshot
-  );
-
   const [revealedCount, setRevealedCount] = useState(0);
   const bottomRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    fetch(`/api/discussions/${params.id}`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => setConversation(data));
+  }, [params.id]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ block: "end" });
@@ -35,6 +27,8 @@ export default function DiscussionPage() {
     if (!conversation) return;
     setRevealedCount((n) => Math.min(n + 1, conversation.messages.length));
   };
+
+  if (conversation === undefined) return null;
 
   if (conversation === null) {
     return (
@@ -47,8 +41,7 @@ export default function DiscussionPage() {
     );
   }
 
-  const conv = conversation as Conversation;
-  const done = revealedCount >= conv.messages.length;
+  const done = revealedCount >= conversation.messages.length;
 
   return (
     <div
@@ -68,7 +61,7 @@ export default function DiscussionPage() {
       </div>
 
       <div className="flex flex-1 flex-col gap-2 overflow-y-auto px-4 pb-4">
-        {conv.messages.slice(0, revealedCount).map((m, i) => (
+        {conversation.messages.slice(0, revealedCount).map((m, i) => (
           <div
             key={i}
             className={`flex ${m.from === "moi" ? "justify-end" : "justify-start"}`}

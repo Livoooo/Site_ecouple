@@ -27,6 +27,13 @@ services:
       - "3000"
     environment:
       SITE_PASSWORD: ${SITE_PASSWORD:-changeme123}
+    volumes:
+      # Les conversations (fichier JSON) doivent survivre aux redéploiements :
+      # sans ce volume, tout serait perdu à chaque rebuild du conteneur.
+      - discussions_data:/app/data
     depends_on:
       - party
     restart: unless-stopped
+
+volumes:
+  discussions_data:
