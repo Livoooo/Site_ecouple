@@ -43,6 +43,7 @@ export default function Room() {
 
   const socketRef = useRef<PartySocket | null>(null);
   const pcRef = useRef<RTCPeerConnection | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   const myIdRef = useRef<string>(crypto.randomUUID());
   const peerIdRef = useRef<string | null>(null);
@@ -407,6 +408,10 @@ export default function Room() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ block: "end" });
+  }, [messages]);
+
   const sendChat = useCallback(
     (e: React.FormEvent) => {
       e.preventDefault();
@@ -543,6 +548,7 @@ export default function Room() {
                 </span>
               </div>
             ))}
+            <div ref={messagesEndRef} />
           </div>
           <form onSubmit={sendChat} className="flex gap-2 border-t border-black/10 p-3 dark:border-white/10">
             <input
