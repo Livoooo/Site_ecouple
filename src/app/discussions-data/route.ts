@@ -19,10 +19,10 @@ async function proxy(url: string, init?: RequestInit) {
       const data = await res.text();
 
       if (!res.ok) {
-        // Les Durable Objects PartyKit sont épinglés à une région Cloudflare
-        // précise : un routage inter-région instable peut donner un 5xx
-        // ponctuel ("no available server"...). On réessaie quelques fois
-        // avant d'abandonner plutôt que de remonter l'erreur immédiatement.
+        // Réponse 5xx renvoyée par Cloudflare/PartyKit : on capture les
+        // headers cf-ray/cf-mitigated pour distinguer un vrai souci du
+        // Durable Object d'un blocage réseau (WAF/réputation IP) côté
+        // Cloudflare, avant de réessayer quelques fois.
         lastFailure = NextResponse.json(
           {
             error: "upstream-error",
@@ -30,6 +30,9 @@ async function proxy(url: string, init?: RequestInit) {
             upstreamStatus: res.status,
             upstreamStatusText: res.statusText,
             upstreamBody: data.slice(0, 1000),
+            upstreamCfRay: res.headers.get("cf-ray"),
+            upstreamCfMitigated: res.headers.get("cf-mitigated"),
+            upstreamServer: res.headers.get("server"),
             attempts: attempt,
           },
           { status: 502 }

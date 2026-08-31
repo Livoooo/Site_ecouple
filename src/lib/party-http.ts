@@ -32,7 +32,8 @@ export async function describeProxyError(res: Response): Promise<string> {
   try {
     const body = await res.json();
     if (body?.error === "upstream-error") {
-      return `PartyKit a répondu ${body.upstreamStatus} ${body.upstreamStatusText} : ${body.upstreamBody}`;
+      const debug = `[cf-ray=${body.upstreamCfRay ?? "?"} mitigated=${body.upstreamCfMitigated ?? "?"} server=${body.upstreamServer ?? "?"} attempts=${body.attempts ?? "?"}]`;
+      return `PartyKit a répondu ${body.upstreamStatus} ${body.upstreamStatusText} : ${body.upstreamBody} ${debug}`;
     }
     if (body?.error === "fetch-exception") {
       return `Le serveur n'a pas pu joindre PartyKit : ${body.message}`;
