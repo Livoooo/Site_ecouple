@@ -4,41 +4,66 @@ import { partyRoomUrl } from "@/lib/party-http";
 // Relais côté serveur vers PartyKit : évite tout fetch cross-origin depuis
 // le navigateur (qui peut être bloqué selon l'appareil/réseau), puisque le
 // navigateur ne parle qu'à ce même domaine.
-async function proxy(url: string, init?: RequestInit) {
-  try {
-    const res = await fetch(url, { ...init, cache: "no-store" });
-    const data = await res.text();
+const MAX_ATTEMPTS = 4;
 
-    if (!res.ok) {
-      // On remonte le détail complet (statut + corps exact renvoyé par
-      // PartyKit ou par un éventuel proxy/pare-feu intermédiaire) au lieu
-      // de juste transmettre le code, pour pouvoir diagnostiquer.
-      return NextResponse.json(
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function proxy(url: string, init?: RequestInit) {
+  let lastFailure: NextResponse | null = null;
+
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    try {
+      const res = await fetch(url, { ...init, cache: "no-store" });
+      const data = await res.text();
+
+      if (!res.ok) {
+        // Les Durable Objects PartyKit sont épinglés à une région Cloudflare
+        // précise : un routage inter-région instable peut donner un 5xx
+        // ponctuel ("no available server"...). On réessaie quelques fois
+        // avant d'abandonner plutôt que de remonter l'erreur immédiatement.
+        lastFailure = NextResponse.json(
+          {
+            error: "upstream-error",
+            upstreamUrl: url,
+            upstreamStatus: res.status,
+            upstreamStatusText: res.statusText,
+            upstreamBody: data.slice(0, 1000),
+            attempts: attempt,
+          },
+          { status: 502 }
+        );
+        if (res.status >= 500 && attempt < MAX_ATTEMPTS) {
+          await sleep(attempt * 300);
+          continue;
+        }
+        return lastFailure;
+      }
+
+      return new NextResponse(data, {
+        status: res.status,
+        headers: { "Content-Type": "application/json" },
+      });
+    } catch (err) {
+      lastFailure = NextResponse.json(
         {
-          error: "upstream-error",
+          error: "fetch-exception",
           upstreamUrl: url,
-          upstreamStatus: res.status,
-          upstreamStatusText: res.statusText,
-          upstreamBody: data.slice(0, 1000),
+          message: err instanceof Error ? `${err.name}: ${err.message}` : String(err),
+          attempts: attempt,
         },
         { status: 502 }
       );
+      if (attempt < MAX_ATTEMPTS) {
+        await sleep(attempt * 300);
+        continue;
+      }
+      return lastFailure;
     }
-
-    return new NextResponse(data, {
-      status: res.status,
-      headers: { "Content-Type": "application/json" },
-    });
-  } catch (err) {
-    return NextResponse.json(
-      {
-        error: "fetch-exception",
-        upstreamUrl: url,
-        message: err instanceof Error ? `${err.name}: ${err.message}` : String(err),
-      },
-      { status: 502 }
-    );
   }
+
+  return lastFailure!;
 }
 
 export async function GET() {
