@@ -39,6 +39,7 @@ export default function Room() {
   const [remoteScreenActive, setRemoteScreenActive] = useState(false);
   const [remoteWebcamActive, setRemoteWebcamActive] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [socketError, setSocketError] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [draft, setDraft] = useState("");
 
@@ -317,7 +318,22 @@ export default function Room() {
 
     socket.addEventListener("open", () => {
       if (!active) return;
+      setSocketError(null);
       send({ type: "hello", id: myIdRef.current });
+    });
+
+    // Diagnostic temporaire : PartySocket réessaie tout seul en cas d'échec,
+    // mais on n'avait aucune visibilité sur la cause quand ça ne se
+    // reconnecte jamais (mauvais host, serveur injoignable...).
+    socket.addEventListener("close", (event) => {
+      if (!active) return;
+      setSocketError(
+        `Signalisation déconnectée (code ${event.code}${event.reason ? " : " + event.reason : ""}), tentative de reconnexion...`
+      );
+    });
+    socket.addEventListener("error", () => {
+      if (!active) return;
+      setSocketError("Erreur de connexion au serveur de signalisation.");
     });
 
     // Chaque message peut déclencher plusieurs `await` (setRemoteDescription,
@@ -522,6 +538,10 @@ export default function Room() {
         </div>
 
         {error && <p className="text-sm text-red-500">{error}</p>}
+        {socketError && <p className="text-sm text-red-500">{socketError}</p>}
+        <p className="text-xs text-zinc-400 dark:text-zinc-600">
+          signaling host : {process.env.NEXT_PUBLIC_PARTYKIT_HOST}
+        </p>
 
         <div className="flex flex-wrap gap-3">
           <button
