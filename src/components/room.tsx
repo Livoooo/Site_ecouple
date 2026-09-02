@@ -40,6 +40,8 @@ export default function Room() {
   const [remoteWebcamActive, setRemoteWebcamActive] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [socketError, setSocketError] = useState<string | null>(null);
+  const [iceConnectionState, setIceConnectionState] = useState<string | null>(null);
+  const [localCandidateTypes, setLocalCandidateTypes] = useState<string[]>([]);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [draft, setDraft] = useState("");
 
@@ -123,7 +125,19 @@ export default function Room() {
     pc.onicecandidate = (event) => {
       if (event.candidate) {
         send({ type: "webrtc-ice", candidate: event.candidate.toJSON() });
+        // Diagnostic temporaire : "relay" = passe par le serveur TURN
+        // (nécessaire si NAT strict des deux côtés). Son absence quand la
+        // connexion reste bloquée pointe vers un souci côté TURN plutôt que
+        // WebRTC en général.
+        const type = event.candidate.type;
+        if (type) {
+          setLocalCandidateTypes((prev) => (prev.includes(type) ? prev : [...prev, type]));
+        }
       }
+    };
+
+    pc.oniceconnectionstatechange = () => {
+      setIceConnectionState(pc.iceConnectionState);
     };
 
     pc.ontrack = (event) => {
@@ -178,6 +192,8 @@ export default function Room() {
     pcRef.current?.close();
     pcRef.current = null;
     setConnectionState(null);
+    setIceConnectionState(null);
+    setLocalCandidateTypes([]);
     setRemoteScreenActive(false);
     setRemoteWebcamActive(false);
     if (remoteScreenVideoRef.current) remoteScreenVideoRef.current.srcObject = null;
@@ -541,6 +557,10 @@ export default function Room() {
         {socketError && <p className="text-sm text-red-500">{socketError}</p>}
         <p className="text-xs text-zinc-400 dark:text-zinc-600">
           signaling host : {process.env.NEXT_PUBLIC_PARTYKIT_SIGNALING_HOST}
+          {" · ice: "}
+          {iceConnectionState ?? "—"}
+          {" · candidats: "}
+          {localCandidateTypes.length > 0 ? localCandidateTypes.join(", ") : "aucun"}
         </p>
 
         <div className="flex flex-wrap gap-3">
