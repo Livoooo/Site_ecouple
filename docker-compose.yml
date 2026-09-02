@@ -8,7 +8,12 @@ services:
         # PartyKit (Cloudflare), pas auto-hébergé — pas de conteneur "party"
         # à maintenir ici, et le stockage survit aux redéploiements de ce
         # service puisqu'il est complètement séparé.
-        NEXT_PUBLIC_PARTYKIT_HOST: ${NEXT_PUBLIC_PARTYKIT_HOST:-watch-party-signaling.Livoooo.partykit.dev}
+        #
+        # Valeur en dur volontairement (pas de ${...}) : NEXT_PUBLIC_* est
+        # figé dans le bundle navigateur au moment du build, donc une
+        # variable d'env Coolify du même nom (héritée de l'ancien service
+        # auto-hébergé "party.jundo.cloud") l'écraserait silencieusement.
+        NEXT_PUBLIC_PARTYKIT_HOST: watch-party-signaling.Livoooo.partykit.dev
         APP_PORT: 3000
     image: watch-party-app-web:latest
     command: ["npm", "run", "start"]
