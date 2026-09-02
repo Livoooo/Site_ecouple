@@ -9,11 +9,12 @@ services:
         # à maintenir ici, et le stockage survit aux redéploiements de ce
         # service puisqu'il est complètement séparé.
         #
-        # Valeur en dur volontairement (pas de ${...}) : NEXT_PUBLIC_* est
-        # figé dans le bundle navigateur au moment du build, donc une
-        # variable d'env Coolify du même nom (héritée de l'ancien service
-        # auto-hébergé "party.jundo.cloud") l'écraserait silencieusement.
-        NEXT_PUBLIC_PARTYKIT_HOST: watch-party-signaling.Livoooo.partykit.dev
+        # Valeur en dur volontairement (pas de ${...}) et sous un nom que
+        # Coolify ne connaît pas : NEXT_PUBLIC_PARTYKIT_HOST est injectée par
+        # Coolify en --build-arg à chaque build (héritée de l'ancien service
+        # auto-hébergé "party.jundo.cloud"), ce qui écrase silencieusement
+        # n'importe quelle valeur mise ici sous ce nom-là.
+        NEXT_PUBLIC_PARTYKIT_SIGNALING_HOST: watch-party-signaling.Livoooo.partykit.dev
         APP_PORT: 3000
     image: watch-party-app-web:latest
     command: ["npm", "run", "start"]

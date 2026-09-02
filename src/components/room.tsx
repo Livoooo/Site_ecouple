@@ -311,7 +311,7 @@ export default function Room() {
     let active = true;
 
     const socket = new PartySocket({
-      host: process.env.NEXT_PUBLIC_PARTYKIT_HOST!,
+      host: process.env.NEXT_PUBLIC_PARTYKIT_SIGNALING_HOST!,
       room: ROOM_NAME,
     });
     socketRef.current = socket;
@@ -540,7 +540,7 @@ export default function Room() {
         {error && <p className="text-sm text-red-500">{error}</p>}
         {socketError && <p className="text-sm text-red-500">{socketError}</p>}
         <p className="text-xs text-zinc-400 dark:text-zinc-600">
-          signaling host : {process.env.NEXT_PUBLIC_PARTYKIT_HOST}
+          signaling host : {process.env.NEXT_PUBLIC_PARTYKIT_SIGNALING_HOST}
         </p>
 
         <div className="flex flex-wrap gap-3">

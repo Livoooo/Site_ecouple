@@ -12,8 +12,13 @@ COPY . .
 # service PartyKit. Par défaut "localhost:1999" convient pour tester depuis
 # la même machine ; surcharge-la (via .env + docker-compose) si le site doit
 # être joignable depuis un autre appareil/réseau.
-ARG NEXT_PUBLIC_PARTYKIT_HOST=localhost:1999
-ENV NEXT_PUBLIC_PARTYKIT_HOST=$NEXT_PUBLIC_PARTYKIT_HOST
+#
+# Nom volontairement différent de NEXT_PUBLIC_PARTYKIT_HOST : Coolify a une
+# variable d'env de ce nom-là, héritée de l'ancien service auto-hébergé, et
+# l'injecte directement en --build-arg à chaque build (elle écrase donc tout
+# ce qu'on met dans docker-compose.yml). Ce nouveau nom lui est inconnu.
+ARG NEXT_PUBLIC_PARTYKIT_SIGNALING_HOST=localhost:1999
+ENV NEXT_PUBLIC_PARTYKIT_SIGNALING_HOST=$NEXT_PUBLIC_PARTYKIT_SIGNALING_HOST
 
 RUN npm run build
 
