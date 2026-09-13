@@ -600,7 +600,7 @@ export default function Room() {
               autoPlay
               playsInline
               muted
-              className="h-full w-full object-cover"
+              className="h-full w-full -scale-x-100 object-cover"
             />
           </div>
           <div
